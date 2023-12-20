@@ -1,4 +1,4 @@
-module github.com/shariqali-dev/toll-calc
+module github.com/shariqali-dev/toll-calculator
 
 go 1.21.5
 

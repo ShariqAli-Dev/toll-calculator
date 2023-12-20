@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/shariqali-dev/toll-calc/types"
+	"github.com/shariqali-dev/toll-calculator/types"
 )
 
 // this is port forwarded to localhost alias
@@ -40,7 +40,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_ = conn
 	for {
 		for i := 0; i < len(obuIDS); i++ {
 			lat, long := genLatLong()

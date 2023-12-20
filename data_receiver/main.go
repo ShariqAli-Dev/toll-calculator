@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/shariqali-dev/toll-calc/types"
+	"github.com/shariqali-dev/toll-calculator/types"
 )
 
 func main() {
@@ -14,7 +14,6 @@ func main() {
 	receiver := NewDataReceiver()
 	http.HandleFunc("/ws", receiver.handleWS)
 	http.ListenAndServe(":3000", nil)
-	fmt.Println("data receiver working")
 }
 
 type DataReceiver struct {
@@ -24,7 +23,7 @@ type DataReceiver struct {
 
 func NewDataReceiver() *DataReceiver {
 	return &DataReceiver{
-		msgch: make(chan types.OBUData, 2048),
+		msgch: make(chan types.OBUData, 128),
 	}
 }
 
