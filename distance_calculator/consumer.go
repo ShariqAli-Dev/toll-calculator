@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/shariqali-dev/toll-calculator/types"
+	types "github.com/shariqali-dev/toll-calculator/internal"
 	"github.com/sirupsen/logrus"
 )
 

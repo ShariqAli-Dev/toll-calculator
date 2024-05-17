@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/shariqali-dev/toll-calculator/types"
+	types "github.com/shariqali-dev/toll-calculator/internal"
 )
 
 // this is port forwarded to localhost alias

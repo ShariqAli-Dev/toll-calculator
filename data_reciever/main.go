@@ -6,42 +6,42 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/shariqali-dev/toll-calculator/types"
+	types "github.com/shariqali-dev/toll-calculator/internal"
 )
 
 func main() {
-	receiver, err := NewDataReceiver()
+	reciever, err := NewDatareciever()
 	if err != nil {
 		log.Fatal(err)
 	}
-	http.HandleFunc("/ws", receiver.handleWS)
+	http.HandleFunc("/ws", reciever.handleWS)
 	http.ListenAndServe(":3000", nil)
 }
 
-type DataReceiver struct {
+type Datareciever struct {
 	msgch chan types.OBUData
 	conn  *websocket.Conn
 	prod  DataProducer
 }
 
-func NewDataReceiver() (*DataReceiver, error) {
+func NewDatareciever() (*Datareciever, error) {
 	kafkaTopic := "ubudata"
 	p, err := NewKafkaProducer(kafkaTopic)
 	if err != nil {
 		return nil, err
 	}
-	return &DataReceiver{
+	return &Datareciever{
 		msgch: make(chan types.OBUData, 128),
 		prod:  NewLogMiddleWare(p),
 	}, nil
 }
 
-func (dr *DataReceiver) produceData(data types.OBUData) error {
+func (dr *Datareciever) produceData(data types.OBUData) error {
 
 	return dr.prod.ProduceData(data)
 }
 
-func (dr *DataReceiver) handleWS(w http.ResponseWriter, r *http.Request) {
+func (dr *Datareciever) handleWS(w http.ResponseWriter, r *http.Request) {
 	u := websocket.Upgrader{
 		ReadBufferSize:  1028,
 		WriteBufferSize: 1028,
@@ -52,10 +52,10 @@ func (dr *DataReceiver) handleWS(w http.ResponseWriter, r *http.Request) {
 	}
 	dr.conn = conn
 
-	go dr.wsReceiveLoop()
+	go dr.wsrecieveLoop()
 }
 
-func (dr *DataReceiver) wsReceiveLoop() {
+func (dr *Datareciever) wsrecieveLoop() {
 	fmt.Println("NEW OBU connected,client connected")
 	for {
 		var data types.OBUData
