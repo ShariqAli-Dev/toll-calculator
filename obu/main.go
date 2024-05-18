@@ -14,7 +14,7 @@ import (
 // this is port forwarded to localhost alias
 const WS_ENDPOINT = "ws://127.0.0.1:3000/ws"
 
-var sendInterval = 1 * time.Second
+var sendInterval = time.Second * 5
 
 func genLatLong() (float64, float64) {
 	return genCoord(), genCoord()
