@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
-
-	types "github.com/shariqali-dev/toll-calculator/internal"
+	"github.com/shariq/microservice/internal/types"
+	"github.com/sirupsen/logrus"
 )
 
 type Aggregator interface {
-	AggregateDistance(types.Distance) error
+	AggregrateDistance(types.Distance) error
 }
 
 type Storer interface {
@@ -24,7 +23,7 @@ func NewInvoiceAggregator(store Storer) *InvoiceAggregator {
 	}
 }
 
-func (i *InvoiceAggregator) AggregateDistance(distance types.Distance) error {
-	fmt.Println("processing and inserting distance in the storage", distance)
+func (i *InvoiceAggregator) AggregrateDistance(distance types.Distance) error {
+	logrus.Warn("processing and inserting distance in the storage: ", distance)
 	return i.store.Insert(distance)
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	types "github.com/shariqali-dev/toll-calculator/internal"
+	"github.com/shariq/microservice/internal/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -11,10 +11,8 @@ type LogMiddleware struct {
 	next DataProducer
 }
 
-func NewLogMiddleWare(next DataProducer) *LogMiddleware {
-	return &LogMiddleware{
-		next: next,
-	}
+func NewLogMiddleware(next DataProducer) *LogMiddleware {
+	return &LogMiddleware{next: next}
 }
 
 func (l *LogMiddleware) ProduceData(data types.OBUData) error {
@@ -27,5 +25,4 @@ func (l *LogMiddleware) ProduceData(data types.OBUData) error {
 		}).Info("producing to kafka")
 	}(time.Now())
 	return l.next.ProduceData(data)
-
 }

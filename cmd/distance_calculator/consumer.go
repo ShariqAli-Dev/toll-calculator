@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	types "github.com/shariqali-dev/toll-calculator/internal"
+	"github.com/shariq/microservice/internal/types"
 	"github.com/sirupsen/logrus"
 )
 
-// this can also be called kafka transport
 type KafkaConsumer struct {
-	consumer     *kafka.Consumer
-	isRunning    bool
-	calcServicer CalculatorServicer
+	consumer    *kafka.Consumer
+	isRunning   bool
+	calcService CalculatorServicer
 }
 
 func NewKafkaConsumer(topic string, svc CalculatorServicer) (*KafkaConsumer, error) {
@@ -21,14 +20,19 @@ func NewKafkaConsumer(topic string, svc CalculatorServicer) (*KafkaConsumer, err
 		"group.id":          "myGroup",
 		"auto.offset.reset": "earliest",
 	})
-
 	if err != nil {
 		return nil, err
 	}
-	c.SubscribeTopics([]string{topic}, nil)
+
+	err = c.SubscribeTopics([]string{topic}, nil)
+	if err != nil {
+		c.Close()
+		return nil, err
+	}
+
 	return &KafkaConsumer{
-		consumer:     c,
-		calcServicer: svc,
+		consumer:    c,
+		calcService: svc,
 	}, nil
 }
 
@@ -41,21 +45,20 @@ func (c *KafkaConsumer) Start() {
 func (c *KafkaConsumer) readMessageLoop() {
 	for c.isRunning {
 		msg, err := c.consumer.ReadMessage(-1)
-		if err != nil {
-			logrus.Errorf("kafka consume error %s", err)
+		if err == nil {
+			// fmt.Printf("mesage on %s: %s\n", msg.TopicPartition, string(msg.Value))
+		} else if !err.(kafka.Error).IsTimeout() {
+			logrus.Errorf("kafa consumer error: %s", err)
 			continue
 		}
+
 		var data types.OBUData
 		if err := json.Unmarshal(msg.Value, &data); err != nil {
-			logrus.Errorf("JSON serialization error: %s", err)
+			logrus.Errorf("json serialization error: %s", err)
 			continue
 		}
-		distance, err := c.calcServicer.CalculateDistance(data)
-		if err != nil {
-			logrus.Errorf("calculation error serialization error: %s", err)
-			continue
-		}
-		// fmt.Printf("distance %.2f\n", distance)
+		distance := c.calcService.CalculateDistance(data)
 		_ = distance
 	}
+
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	types "github.com/shariqali-dev/toll-calculator/internal"
+	"github.com/shariq/microservice/internal/types"
 )
 
 type DataProducer interface {
@@ -19,7 +19,7 @@ type KafkaProducer struct {
 func NewKafkaProducer(topic string) (DataProducer, error) {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// start another goroutine to check if we have delivered the data
@@ -46,12 +46,9 @@ func (p *KafkaProducer) ProduceData(data types.OBUData) error {
 	if err != nil {
 		return err
 	}
-
 	return p.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{
-			Topic:     &p.topic,
-			Partition: kafka.PartitionAny,
-		},
-		Value: b,
+		TopicPartition: kafka.TopicPartition{Topic: &p.topic, Partition: kafka.PartitionAny},
+		Value:          b,
 	}, nil)
+
 }

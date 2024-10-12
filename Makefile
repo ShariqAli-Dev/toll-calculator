@@ -1,14 +1,28 @@
-obu:
-	@go build -o ./bin/obu ./obu
+build-obu:
+	@go build -o ./bin/obu ./cmd/obu
+obu: build-obu
 	@./bin/obu
-reciever:
-	@go build -o ./bin/reciever ./data_reciever
+
+build-reciever:
+	@go build -o ./bin/reciever ./cmd/reciever
+reciever: build-reciever
 	@./bin/reciever
-calculator:
-	@go build -o ./bin/distance_calculator ./distance_calculator
+
+
+build-calc:
+	@go build -o ./bin/distance_calculator ./cmd/distance_calculator
+calc: build-calc
 	@./bin/distance_calculator
-agg:
-	@go build -o ./bin/aggregator ./aggregator
+
+
+build-aggr:
+	@go build -o ./bin/aggregator ./cmd/aggregator
+aggr: build-aggr
 	@./bin/aggregator
 
-.PHONY: obu invoicer
+kafka:
+	@docker compose up -d
+kafka-stop:
+	@docker compose down
+
+.PHONY: obu

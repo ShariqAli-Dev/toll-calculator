@@ -1,6 +1,6 @@
 package main
 
-import types "github.com/shariqali-dev/toll-calculator/internal"
+import "github.com/shariq/microservice/internal/types"
 
 type MemoryStore struct {
 }
