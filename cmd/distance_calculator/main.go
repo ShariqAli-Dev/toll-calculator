@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/shariq/microservice/internal/types"
+	"github.com/shariqali-dev/toll-calculator/internal/types"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/shariq/microservice/internal/types"
+	"github.com/shariqali-dev/toll-calculator/internal/types"
 )
 
 type DataProducer interface {

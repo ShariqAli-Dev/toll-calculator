@@ -3,7 +3,7 @@ package main
 import (
 	"math"
 
-	"github.com/shariq/microservice/internal/types"
+	"github.com/shariqali-dev/toll-calculator/internal/types"
 )
 
 type CalculatorServicer interface {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/shariq/microservice/internal/types"
+	"github.com/shariqali-dev/toll-calculator/internal/types"
 )
 
 type DataReciever struct {

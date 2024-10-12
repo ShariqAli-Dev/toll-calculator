@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/shariq/microservice/internal/types"
+	"github.com/shariqali-dev/toll-calculator/internal/types"
 	"github.com/sirupsen/logrus"
 )
 

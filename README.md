@@ -1,4 +1,4 @@
-# microservice
+# toll-calculator
 
 obu generates lat,long
 reciever recieves lat,long - puts in a kafka que
