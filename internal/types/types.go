@@ -12,4 +12,7 @@ type OBUData struct {
 	Long  float64 `json:"long"`
 }
 
-const KAFKA_TOPIC = "obudata"
+const (
+	KAFKA_TOPIC         = "obudata"
+	AGGREGATOR_ENDPOINT = "http://127.0.0.1:3001/aggregate"
+)
