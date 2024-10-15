@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	sendInterval = time.Second
+	sendInterval = time.Second * 3
 	wsEndpoint   = "ws://127.0.0.1:3000/ws"
 )
 

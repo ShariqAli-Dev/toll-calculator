@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 	"github.com/sirupsen/logrus"
@@ -20,10 +22,32 @@ func main() {
 }
 
 func makeHTTPTransport(listenAddr string, svc Aggregator) {
+	mux := http.NewServeMux()
+	mux.Handle("POST /aggregate", handleAggregate(svc))
+	mux.Handle("GET /invoice", handleGetInvoice(svc))
+
 	logrus.Infof("HTTP TRANSPORT RUNNING ON PORT %s", listenAddr)
-	http.HandleFunc("/aggregate", handleAggregate(svc))
-	if err := http.ListenAndServe(listenAddr, nil); err != nil {
-		logrus.Error("failed to listen an server server", err)
+	if err := http.ListenAndServe(listenAddr, mux); err != nil {
+		logrus.Error("failed to listen an server server\n", err)
+		log.Fatal(err)
+	}
+}
+
+func handleGetInvoice(service Aggregator) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		obuID, err := strconv.Atoi(r.URL.Query().Get("obuID"))
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+
+		invoice, err := service.CalculateInvoice(obuID)
+		if err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+
+		writeJSON(w, http.StatusInternalServerError, invoice)
 	}
 }
 
@@ -38,6 +62,7 @@ func handleAggregate(svc Aggregator) http.HandlerFunc {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
+		writeJSON(w, http.StatusOK, distance)
 	}
 }
 
