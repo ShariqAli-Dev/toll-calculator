@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -8,7 +9,9 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/shariqali-dev/toll-calculator/internal/client"
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -22,14 +25,28 @@ func main() {
 	store := NewMemoryStore()
 	svc := NewlogMiddleware(NewInvoiceAggregator(store))
 
-	go makeGRPCTransport(*grpcListenAddr, svc)
-	makeHTTPTransport(*httpListenAddr, svc)
+	go func() {
+		log.Fatal(makeGRPCTransport(*grpcListenAddr, svc))
+	}()
+	time.Sleep(time.Second * 2)
+	grpcClient, err := client.NewGRPCClient(*grpcListenAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err = grpcClient.Aggregate(context.Background(), &types.AggregateRequest{
+		ObuID: 1,
+		Value: 50.8,
+		Unix:  time.Now().Unix(),
+	}); err != nil {
+		log.Fatal(err)
+	}
+	log.Fatal(makeHTTPTransport(*httpListenAddr, svc))
 }
 
 func makeGRPCTransport(listenAddr string, svc Aggregator) error {
 	logrus.Infof("GRPC TRANSPORT RUNNING ON PORT %s", listenAddr)
 	// make a tcp listener
-	listener, err := net.Listen("TPC", listenAddr)
+	listener, err := net.Listen("tcp", listenAddr)
 	if err != nil {
 		return fmt.Errorf("error listening grpc: %v", err)
 	}
@@ -41,16 +58,13 @@ func makeGRPCTransport(listenAddr string, svc Aggregator) error {
 	return server.Serve(listener)
 }
 
-func makeHTTPTransport(listenAddr string, svc Aggregator) {
+func makeHTTPTransport(listenAddr string, svc Aggregator) error {
 	mux := http.NewServeMux()
 	mux.Handle("POST /aggregate", handleAggregate(svc))
 	mux.Handle("GET /invoice", handleGetInvoice(svc))
 
 	logrus.Infof("HTTP TRANSPORT RUNNING ON PORT %s", listenAddr)
-	if err := http.ListenAndServe(listenAddr, mux); err != nil {
-		logrus.Error("failed to listen an server server\n", err)
-		log.Fatal(err)
-	}
+	return http.ListenAndServe(listenAddr, mux)
 }
 
 func handleGetInvoice(service Aggregator) http.HandlerFunc {

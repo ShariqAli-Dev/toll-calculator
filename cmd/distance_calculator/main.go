@@ -9,7 +9,7 @@ import (
 
 func main() {
 	svc := NewLogMiddleware(NewCalculatorService())
-	aggClient := client.NewClient(types.AGGREGATOR_ENDPOINT)
+	aggClient := client.NewHTTPClient(types.AGGREGATOR_ENDPOINT)
 	kafkaConsumer, err := NewKafkaConsumer(types.KAFKA_TOPIC, svc, aggClient)
 	if err != nil {
 		log.Fatalf("error init kafka consumer: %v", err)

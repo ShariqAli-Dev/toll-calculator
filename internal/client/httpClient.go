@@ -9,17 +9,17 @@ import (
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 )
 
-type Client struct {
+type HTTPClient struct {
 	Endpoint string
 }
 
-func NewClient(endpoint string) *Client {
-	return &Client{
+func NewHTTPClient(endpoint string) *GRPCClient {
+	return &GRPCClient{
 		Endpoint: endpoint,
 	}
 }
 
-func (c *Client) AggregateInvoice(distance types.Distance) error {
+func (c *HTTPClient) AggregateInvoice(distance types.Distance) error {
 	b, err := json.Marshal(distance)
 	if err != nil {
 		return fmt.Errorf("error marshalling distance: %v", distance)
