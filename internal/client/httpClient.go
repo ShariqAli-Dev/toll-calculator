@@ -13,8 +13,8 @@ type HTTPClient struct {
 	Endpoint string
 }
 
-func NewHTTPClient(endpoint string) *GRPCClient {
-	return &GRPCClient{
+func NewHTTPClient(endpoint string) *HTTPClient {
+	return &HTTPClient{
 		Endpoint: endpoint,
 	}
 }
