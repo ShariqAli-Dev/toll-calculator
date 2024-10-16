@@ -33,7 +33,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err = grpcClient.Aggregate(context.Background(), &types.AggregateRequest{
+	if _, err = grpcClient.Client.Aggregate(context.Background(), &types.AggregateRequest{
 		ObuID: 1,
 		Value: 50.8,
 		Unix:  time.Now().Unix(),
