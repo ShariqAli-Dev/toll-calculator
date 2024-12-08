@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shariqali-dev/toll-calculator/internal/types"
+	"github.com/sirupsen/logrus"
 )
 
 type Storer interface {
@@ -29,7 +30,9 @@ func (m *MemoryStore) Insert(d types.Distance) error {
 func (m *MemoryStore) Get(id int) (float64, error) {
 	distance, ok := m.data[id]
 	if !ok {
-		return 0.0, fmt.Errorf("could not find distance for obu id %d", id)
+		err := fmt.Errorf("could not find distance for obu id %d", id)
+		logrus.Error(err)
+		return 0.0, err
 	}
 	return distance, nil
 }

@@ -28,3 +28,10 @@ grpc
 ```
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 ```
+
+## instrumentation
+
+- grafana
+- prometheus
+  installing client
+  "github.com/prometheus/client_golang/prometheus"

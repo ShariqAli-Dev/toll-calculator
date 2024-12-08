@@ -26,7 +26,7 @@ func genLatLong() (float64, float64) {
 func generateOBUIDS(n int) []int {
 	ids := make([]int, n)
 	for i := 0; i < n; i++ {
-		ids[i] = rand.Intn(10)
+		ids[i] = i
 	}
 	return ids
 }

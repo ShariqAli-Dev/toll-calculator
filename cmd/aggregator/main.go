@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shariqali-dev/toll-calculator/internal/client"
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 	"github.com/sirupsen/logrus"
@@ -23,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	store := NewMemoryStore()
-	svc := NewlogMiddleware(NewInvoiceAggregator(store))
+	svc := NewlogMiddleware(NewMetricsMiddleware(NewInvoiceAggregator(store)))
 
 	go func() {
 		log.Fatal(makeGRPCTransport(*grpcListenAddr, svc))
@@ -60,8 +61,9 @@ func makeGRPCTransport(listenAddr string, svc Aggregator) error {
 
 func makeHTTPTransport(listenAddr string, svc Aggregator) error {
 	mux := http.NewServeMux()
-	mux.Handle("POST /aggregate", handleAggregate(svc))
-	mux.Handle("GET /invoice", handleGetInvoice(svc))
+	mux.HandleFunc("POST /aggregate", handleAggregate(svc))
+	mux.HandleFunc("GET /invoice", handleGetInvoice(svc))
+	mux.Handle("GET /metrics", promhttp.Handler())
 
 	logrus.Infof("HTTP TRANSPORT RUNNING ON PORT %s", listenAddr)
 	return http.ListenAndServe(listenAddr, mux)
@@ -69,7 +71,6 @@ func makeHTTPTransport(listenAddr string, svc Aggregator) error {
 
 func handleGetInvoice(service Aggregator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logrus.WithField("thes tring", r.URL.Query().Get("obuID")).Info("THE OBU ID ERRORING")
 		obuID, err := strconv.Atoi(r.URL.Query().Get("obuID"))
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
