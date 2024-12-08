@@ -27,7 +27,9 @@ func main() {
 	svc := NewlogMiddleware(NewMetricsMiddleware(NewInvoiceAggregator(store)))
 
 	go func() {
-		log.Fatal(makeGRPCTransport(*grpcListenAddr, svc))
+		if err := makeGRPCTransport(*grpcListenAddr, svc); err != nil {
+			logrus.Fatal(err)
+		}
 	}()
 	time.Sleep(time.Second * 2)
 	grpcClient, err := client.NewGRPCClient(*grpcListenAddr)
