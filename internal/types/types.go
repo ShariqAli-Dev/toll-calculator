@@ -2,7 +2,7 @@ package types
 
 const (
 	KAFKA_TOPIC         = "obudata"
-	AGGREGATOR_ENDPOINT = "http://127.0.0.1:3001/aggregate"
+	AGGREGATOR_ENDPOINT = "http://127.0.0.1:3001"
 )
 
 type Invoice struct {

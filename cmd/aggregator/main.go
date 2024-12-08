@@ -69,6 +69,7 @@ func makeHTTPTransport(listenAddr string, svc Aggregator) error {
 
 func handleGetInvoice(service Aggregator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logrus.WithField("thes tring", r.URL.Query().Get("obuID")).Info("THE OBU ID ERRORING")
 		obuID, err := strconv.Atoi(r.URL.Query().Get("obuID"))
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -81,7 +82,8 @@ func handleGetInvoice(service Aggregator) http.HandlerFunc {
 			return
 		}
 
-		writeJSON(w, http.StatusInternalServerError, invoice)
+		writeJSON(w, http.StatusOK, invoice)
+		return
 	}
 }
 
