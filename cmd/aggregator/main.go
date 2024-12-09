@@ -52,9 +52,12 @@ func makeGRPCTransport(listenAddr string, svc Aggregator) error {
 }
 
 func makeHTTPTransport(listenAddr string, svc Aggregator) error {
+	aggMetricsHandler := newHTTPMetricsHandler("aggregate")
+	invMetricsHandler := newHTTPMetricsHandler("invoice")
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /aggregate", handleAggregate(svc))
-	mux.HandleFunc("GET /invoice", handleGetInvoice(svc))
+	mux.HandleFunc("POST /aggregate", aggMetricsHandler.instrument(handleAggregate(svc)))
+	mux.HandleFunc("GET /invoice", invMetricsHandler.instrument(handleGetInvoice(svc)))
 	mux.Handle("GET /metrics", promhttp.Handler())
 
 	logrus.Infof("HTTP TRANSPORT RUNNING ON PORT %s", listenAddr)
