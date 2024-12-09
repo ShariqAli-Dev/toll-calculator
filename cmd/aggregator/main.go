@@ -55,46 +55,57 @@ func makeHTTPTransport(listenAddr string, svc Aggregator) error {
 	aggMetricsHandler := newHTTPMetricsHandler("aggregate")
 	invMetricsHandler := newHTTPMetricsHandler("invoice")
 
+	aggHandler := makeHTTPHandlerFunc(aggMetricsHandler.instrument(handleAggregate(svc)))
+	invHandler := makeHTTPHandlerFunc(invMetricsHandler.instrument(handleGetInvoice(svc)))
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /aggregate", aggMetricsHandler.instrument(handleAggregate(svc)))
-	mux.HandleFunc("GET /invoice", invMetricsHandler.instrument(handleGetInvoice(svc)))
+	mux.HandleFunc("GET /invoice", invHandler)
+	mux.HandleFunc("POST /aggregate", aggHandler)
 	mux.Handle("GET /metrics", promhttp.Handler())
 
 	logrus.Infof("HTTP TRANSPORT RUNNING ON PORT %s", listenAddr)
 	return http.ListenAndServe(listenAddr, mux)
 }
 
-func handleGetInvoice(service Aggregator) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func handleGetInvoice(service Aggregator) HTTPFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		obuID, err := strconv.Atoi(r.URL.Query().Get("obuID"))
 		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
+			return APIError{
+				Code: http.StatusBadRequest,
+				Err:  fmt.Errorf("missing or invalid obuID"),
+			}
 		}
 
 		invoice, err := service.CalculateInvoice(obuID)
 		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
+			return APIError{
+				Code: http.StatusInternalServerError,
+				Err:  err,
+			}
 		}
 
-		writeJSON(w, http.StatusOK, invoice)
-		return
+		return writeJSON(w, http.StatusOK, invoice)
 	}
 }
 
-func handleAggregate(svc Aggregator) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func handleAggregate(svc Aggregator) HTTPFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		var distance types.Distance
 		if err := json.NewDecoder(r.Body).Decode(&distance); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-			return
+			return APIError{
+				Code: http.StatusInternalServerError,
+				Err:  err,
+			}
 		}
 		if err := svc.AggregateDistance(distance); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-			return
+			return APIError{
+				Code: http.StatusInternalServerError,
+				Err:  err,
+			}
 		}
-		writeJSON(w, http.StatusOK, distance)
+		return writeJSON(w, http.StatusOK, distance)
+
 	}
 }
 
