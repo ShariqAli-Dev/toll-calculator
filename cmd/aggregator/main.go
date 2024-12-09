@@ -1,49 +1,39 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
-	"log"
-	"net"
-	"net/http"
-	"strconv"
-	"time"
-
+	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/shariqali-dev/toll-calculator/internal/client"
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
 )
 
 func main() {
-	httpListenAddr := flag.String("httpAddr", ":3001", "the listen address of the HTTP server")
-	grpcListenAddr := flag.String("grpcAddr", ":3002", "the listen address of the GRPC server")
-	flag.Parse()
+	var (
+		httpListenAddr = os.Getenv("AGG_HTTP_ENDPOINT")
+		grpcListenAddr = os.Getenv("AGG_GRPC_ENDPOINT")
+		store          = makeStore(os.Getenv("AGG_STORE_TYPE"))
+		svc            = NewlogMiddleware(NewMetricsMiddleware(NewInvoiceAggregator(store)))
+	)
 
-	store := NewMemoryStore()
-	svc := NewlogMiddleware(NewMetricsMiddleware(NewInvoiceAggregator(store)))
+	if httpListenAddr == "" || grpcListenAddr == "" {
+		logrus.WithFields(logrus.Fields{
+			"httpAddr": httpListenAddr,
+			"grpcAddr": grpcListenAddr,
+		}).Fatal("invalid env")
+	}
 
 	go func() {
-		if err := makeGRPCTransport(*grpcListenAddr, svc); err != nil {
-			logrus.Fatal(err)
-		}
+		logrus.Fatal(makeGRPCTransport(grpcListenAddr, svc))
 	}()
-	time.Sleep(time.Second * 2)
-	grpcClient, err := client.NewGRPCClient(*grpcListenAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if _, err = grpcClient.Client.Aggregate(context.Background(), &types.AggregateRequest{
-		ObuID: 1,
-		Value: 50.8,
-		Unix:  time.Now().Unix(),
-	}); err != nil {
-		log.Fatal(err)
-	}
-	log.Fatal(makeHTTPTransport(*httpListenAddr, svc))
+	log.Fatal(makeHTTPTransport(httpListenAddr, svc))
 }
 
 func makeGRPCTransport(listenAddr string, svc Aggregator) error {
@@ -109,4 +99,20 @@ func writeJSON(w http.ResponseWriter, status int, v any) error {
 	w.WriteHeader(status)
 	w.Header().Add("Content-Type", "application/json")
 	return json.NewEncoder(w).Encode(v)
+}
+
+func makeStore(storeType string) Storer {
+	switch storeType {
+	case "memory":
+		return NewMemoryStore()
+	default:
+		logrus.Fatalf("invalid store type given: %s", storeType)
+		return nil
+	}
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		logrus.Fatal(err)
+	}
 }
