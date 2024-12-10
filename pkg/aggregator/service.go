@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/shariqali-dev/toll-calculator/internal/store"
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 	"github.com/sirupsen/logrus"
 )
@@ -13,10 +14,10 @@ type Aggregator interface {
 }
 
 type InvoiceAggregator struct {
-	store Storer
+	store store.Storer
 }
 
-func NewInvoiceAggregator(store Storer) Aggregator {
+func NewInvoiceAggregator(store store.Storer) Aggregator {
 	return &InvoiceAggregator{
 		store: store,
 	}

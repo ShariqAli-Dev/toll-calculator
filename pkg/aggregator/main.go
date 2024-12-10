@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/shariqali-dev/toll-calculator/internal/store"
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -115,10 +116,10 @@ func writeJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func makeStore(storeType string) Storer {
+func makeStore(storeType string) store.Storer {
 	switch storeType {
 	case "memory":
-		return NewMemoryStore()
+		return store.NewMemoryStore()
 	default:
 		logrus.Fatalf("invalid store type given: %s", storeType)
 		return nil

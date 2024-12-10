@@ -5,6 +5,7 @@ const (
 	AGGREGATOR_ENDPOINT = "http://127.0.0.1:3001"
 )
 
+// should be transport independant
 type Invoice struct {
 	OBUID         int     `json:"obuID"`
 	TotalDistance float64 `json:"totalDistance"`
