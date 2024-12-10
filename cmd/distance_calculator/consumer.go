@@ -41,6 +41,10 @@ func NewKafkaConsumer(topic string, svc CalculatorServicer, aggClient client.Cli
 	}, nil
 }
 
+func (c *KafkaConsumer) Close() {
+	c.isRunning = false
+}
+
 func (c *KafkaConsumer) Start() {
 	logrus.Info("kafka transport started")
 	c.isRunning = true
@@ -50,9 +54,7 @@ func (c *KafkaConsumer) Start() {
 func (c *KafkaConsumer) readMessageLoop() {
 	for c.isRunning {
 		msg, err := c.consumer.ReadMessage(-1)
-		if err == nil {
-			// fmt.Printf("mesage on %s: %s\n", msg.TopicPartition, string(msg.Value))
-		} else if !err.(kafka.Error).IsTimeout() {
+		if err != nil {
 			logrus.Errorf("kafa consumer error: %s", err)
 			continue
 		}
@@ -60,6 +62,10 @@ func (c *KafkaConsumer) readMessageLoop() {
 		var data types.OBUData
 		if err := json.Unmarshal(msg.Value, &data); err != nil {
 			logrus.Errorf("json serialization error: %s", err)
+			logrus.WithFields(logrus.Fields{
+				"err":       err,
+				"requestID": data.RequestID,
+			})
 			continue
 		}
 		distance := c.calcService.CalculateDistance(data)
