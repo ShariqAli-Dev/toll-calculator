@@ -3,6 +3,7 @@ package aggservice
 import (
 	"context"
 
+	"github.com/go-kit/log"
 	"github.com/shariqali-dev/toll-calculator/internal/store"
 	"github.com/shariqali-dev/toll-calculator/internal/types"
 )
@@ -46,11 +47,11 @@ func (svc *BasicService) Calculate(_ context.Context, obuID int) (*types.Invoice
 	return inv, nil
 }
 
-func New() Service {
+func New(logger log.Logger) Service {
 	var svc Service
 	{
 		svc = newBasicService(store.NewMemoryStore())
-		svc = newLoggingMiddleware()(svc)
+		svc = newLoggingMiddleware(logger)(svc)
 		svc = newInstrumentationMiddleware()(svc)
 	}
 	return svc

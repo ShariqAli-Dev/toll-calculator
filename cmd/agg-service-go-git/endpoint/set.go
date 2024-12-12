@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/metrics"
 	"github.com/go-kit/kit/ratelimit"
 	"github.com/go-kit/log"
 	aggservice "github.com/shariqali-dev/toll-calculator/cmd/agg-service-go-git/service"
@@ -78,14 +79,14 @@ func MakeCalcEndpoint(s aggservice.Service) endpoint.Endpoint {
 	}
 }
 
-func New(svc aggservice.Service, logger log.Logger) Set {
+func New(svc aggservice.Service, logger log.Logger, duration metrics.Histogram) Set {
 	var aggregateEndpoint endpoint.Endpoint
 	{
 		aggregateEndpoint = MakeAggEndpoint(svc)
 		aggregateEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(aggregateEndpoint)
 		aggregateEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(aggregateEndpoint)
-		// aggregateEndpoint = LoggingMiddleware(log.With(logger, "method", "Sum"))(aggregateEndpoint)
-		// aggregateEndpoint = InstrumentingMiddleware(duration.With("method", "Sum"))(aggregateEndpoint)
+		aggregateEndpoint = LoggingMiddleware(log.With(logger, "method", "Aggregate"))(aggregateEndpoint)
+		aggregateEndpoint = InstrumentingMiddleware(duration.With("method", "Aggregate"))(aggregateEndpoint)
 	}
 
 	var calculateEndpoint endpoint.Endpoint
@@ -93,8 +94,8 @@ func New(svc aggservice.Service, logger log.Logger) Set {
 		calculateEndpoint = MakeAggEndpoint(svc)
 		calculateEndpoint = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 1))(calculateEndpoint)
 		calculateEndpoint = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(calculateEndpoint)
-		//  = LoggingMiddleware(log.With(logger, "method", "Sum"))(_____)
-		//  = InstrumentingMiddleware(duration.With("method", "Sum"))(___)
+		calculateEndpoint = LoggingMiddleware(log.With(logger, "method", "Calculate"))(calculateEndpoint)
+		calculateEndpoint = InstrumentingMiddleware(duration.With("method", "Calculate"))(calculateEndpoint)
 	}
 	return Set{
 		AggregateEndpoint: aggregateEndpoint,

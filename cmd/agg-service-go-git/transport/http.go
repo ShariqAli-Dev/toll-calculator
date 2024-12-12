@@ -43,6 +43,7 @@ func NewHTTPHandler(endpoints aggendpoint.Set, logger log.Logger) http.Handler {
 		encodeHTTPGenericResponse,
 		options...,
 	))
+
 	return m
 }
 
